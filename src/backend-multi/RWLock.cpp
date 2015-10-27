@@ -9,26 +9,52 @@ implementación de Read-Write Locks utilizando únicamente Variables de
 Condición. */
 
 RWLock :: RWLock() {
-    /* Cambiar por su implementación */
-    pthread_rwlock_init(&(this->rwlock),NULL);
+    pthread_mutex_init(&m, NULL);
+    pthread_cond_init(&molinete, NULL);
+    escribiendo = false;
+    lectores = 0;
+    escritores = 0;
+    mol  =true;
 }
 
 void RWLock :: rlock() {
-    /* Cambiar por su implementación */
-    pthread_rwlock_rdlock(&(this->rwlock));
+    pthread_mutex_lock(&m);
+
+    while(!mol)
+        pthread_cond_wait(&molinete, &m);
+
+    while(escritores > 0)
+        pthread_cond_wait(&molinete, &m);
+    lectores++;
+    pthread_mutex_unlock(&m);
 }
 
 void RWLock :: wlock() {
-    /* Cambiar por su implementación */
-    pthread_rwlock_wrlock(&(this->rwlock));
+    pthread_mutex_lock(&m);
+    
+    while (!mol)
+        pthread_cond_wait(&molinete, &m);
+    mol = false;
+
+    escritores++;
+    while (escribiendo || lectores > 0)
+        pthread_cond_wait(&molinete, &m);
+    escribiendo = true;
+    pthread_mutex_unlock(&m);
 }
 
 void RWLock :: runlock() {
-    /* Cambiar por su implementación */
-    pthread_rwlock_unlock(&(this->rwlock));
+    pthread_mutex_lock(&m);
+    lectores--;
+    pthread_cond_broadcast(&molinete);
+    pthread_mutex_unlock(&m);
 }
 
 void RWLock :: wunlock() {
-    /* Cambiar por su implementación */
-    pthread_rwlock_unlock(&(this->rwlock));
+    pthread_mutex_lock(&m);
+    mol = true;
+    escribiendo = false;
+    escritores--;
+    pthread_cond_broadcast(&molinete);
+    pthread_mutex_unlock(&m);
 }
