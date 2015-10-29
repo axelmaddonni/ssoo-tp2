@@ -11,10 +11,8 @@ Condición. */
 RWLock :: RWLock() {
     pthread_mutex_init(&m, NULL);
     pthread_cond_init(&molinete, NULL);
-    escribiendo = false;
-    lectores = 0;
-    escritores = 0;
-    mol  =true;
+    lectores = 0;  
+    mol = true;
 }
 
 void RWLock :: rlock() {
@@ -23,8 +21,6 @@ void RWLock :: rlock() {
     while(!mol)
         pthread_cond_wait(&molinete, &m);
 
-    while(escritores > 0)
-        pthread_cond_wait(&molinete, &m);
     lectores++;
     pthread_mutex_unlock(&m);
 }
@@ -35,11 +31,9 @@ void RWLock :: wlock() {
     while (!mol)
         pthread_cond_wait(&molinete, &m);
     mol = false;
-
-    escritores++;
-    while (escribiendo || lectores > 0)
+ 
+    while (lectores > 0)
         pthread_cond_wait(&molinete, &m);
-    escribiendo = true;
     pthread_mutex_unlock(&m);
 }
 
@@ -53,8 +47,6 @@ void RWLock :: runlock() {
 void RWLock :: wunlock() {
     pthread_mutex_lock(&m);
     mol = true;
-    escribiendo = false;
-    escritores--;
     pthread_cond_broadcast(&molinete);
     pthread_mutex_unlock(&m);
 }

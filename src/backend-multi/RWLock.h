@@ -22,10 +22,7 @@ class RWLock {
 
     
         // pthread_rwlock_t rwlock;
-        bool escribiendo;
-        int escritores;
         int lectores;
-        int turno;
         bool mol;
 
         pthread_mutex_t m;

@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < CANT_THREADS; i++){
 
-        if(i == 10) pthread_create(&thread[i], NULL, leer , &tid[i]);
+        if(i != 10) pthread_create(&thread[i], NULL, leer , &tid[i]);
         else pthread_create(&thread[i], NULL, escribir, &tid[i]);
     }
 
