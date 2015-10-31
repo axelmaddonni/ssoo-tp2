@@ -97,15 +97,20 @@ int main(int argc, const char* argv[]) {
             if ((socketfd_cliente = accept(socket_servidor, (struct sockaddr*) &remoto, (socklen_t*) &socket_size)) == -1)
                 cerr << "Error al aceptar conexion" << endl;
             else {
-                // no sabemos si habia que comentar esto vvv
-            if (jugadores ==  MAX_JUGADORES){
-                 close(socket_servidor);
-            }
-                pthread_create(&threads[jugadores], NULL, atendedor_de_jugador, &socketfd_cliente);
+                pthread_create(&threads[jugadores], NULL, 
+                               atendedor_de_jugador, &socketfd_cliente);
                 jugadores++;
+                if (jugadores ==  MAX_JUGADORES)
+                    break;
+
             }
-    
     }
+    close(socket_servidor); 
+    std::cout << "Sala llena, no pueden conectarse mas clientes, esperando a que terminen de jugar..." << std::endl;
+
+    for(unsigned int i = 0; i < jugadores; i++)
+        pthread_join(threads[i], NULL);
+
     return 0;
 }
 

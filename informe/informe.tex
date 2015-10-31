@@ -1,0 +1,85 @@
+\documentclass[a4paper,12pt, nofootinbib]{article}
+\usepackage[width=15.5cm, left=3cm, top=3cm, right=2cm, left=2.5cm]{geometry}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{xspace}
+\usepackage{xargs}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{caratula}
+\usepackage[bottom]{footmisc}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{placeins}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+      colorlinks,
+      linkcolor={red!50!black},
+      citecolor={blue!50!black},
+      urlcolor={blue!80!black}
+}
+
+
+\usepackage{graphicx}
+\usepackage{sidecap}
+\usepackage{amsmath}
+\usepackage{listings}
+
+
+\lstset{ %
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible) 
+  otherkeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's4 1, each line will be numbered 
+  tabsize=2,                     % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+\setlength{\parindent}{4em}
+\setlength{\parskip}{0.6em}
+
+
+%%fancyhdr
+\pagestyle{fancy}
+\thispagestyle{fancy}
+\addtolength{\headheight}{1pt}
+\lhead{Sistemas Operativos: TP1}
+\rhead{$2º$ cuatrimestre de 2015}
+\cfoot{\thepage\ / \pageref{LastPage}}
+\renewcommand{\footrulewidth}{0.4pt}
+
+%\hypersetup{pdfpagemode=FullScreen}
+\pdfcatalog{ /PageMode /FullScreen }
+
+%%caratula
+\materia{Sistemas Operativos}
+\titulo{Trabajo Práctico Número 2}
+\subtitulo{\texttt{pthreads} - ``SOScrabel''}
+%\grupo{Grupo 12}
+%\integrante{Nombre}{LU}{email}
+\integrante{Ciruelos Rodríguez, Gonzalo}{063/14}{gonzalo.ciruelos@gmail.com}
+\integrante{Maddonni, Axel Ezequiel}{200/14}{axel.maddonni@gmail.com}
+\integrante{Thibeault, Gabriel}{114/13}{gabriel.eric.thibeault@gmail.com}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Read-Write Lock}
+\input{rwlock.tex}
+
+
+\section{Backend Multiplayer}
+\input{backendmp.tex}
+
+\end{document}
