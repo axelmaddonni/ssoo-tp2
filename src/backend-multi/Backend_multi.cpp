@@ -94,16 +94,15 @@ int main(int argc, const char* argv[]) {
     // aceptar conexiones entrantes.
     socket_size = sizeof(remoto);
     while (true) {
-            if ((socketfd_cliente = accept(socket_servidor, (struct sockaddr*) &remoto, (socklen_t*) &socket_size)) == -1)
-                cerr << "Error al aceptar conexion" << endl;
-            else {
-                pthread_create(&threads[jugadores], NULL, 
-                               atendedor_de_jugador, &socketfd_cliente);
-                jugadores++;
-                if (jugadores ==  MAX_JUGADORES)
-                    break;
-
-            }
+        if ((socketfd_cliente = accept(socket_servidor, (struct sockaddr*) &remoto, (socklen_t*) &socket_size)) == -1)
+            cerr << "Error al aceptar conexion" << endl;
+        else {
+            pthread_create(&threads[jugadores], NULL, 
+                           atendedor_de_jugador, &socketfd_cliente);
+            jugadores++;
+            if (jugadores ==  MAX_JUGADORES)
+                break;
+        }
     }
     close(socket_servidor); 
     std::cout << "Sala llena, no pueden conectarse mas clientes, esperando a que terminen de jugar..." << std::endl;
@@ -149,9 +148,9 @@ void *atendedor_de_jugador(void *args){
                 palabra_actual.push_back(ficha);
 
                 // necesito hacer wlock *_*
-								locks_t_letras[ficha.fila][ficha.columna].wlock();
+                locks_t_letras[ficha.fila][ficha.columna].wlock();
                 tablero_letras[ficha.fila][ficha.columna] = ficha.letra;
-								locks_t_letras[ficha.fila][ficha.columna].wunlock();
+				locks_t_letras[ficha.fila][ficha.columna].wunlock();
 
                 // OK
                 if (enviar_ok(socket_fd) != 0) {
@@ -169,16 +168,16 @@ void *atendedor_de_jugador(void *args){
             }
         }
         else if (comando == MSG_PALABRA) {
-            // las letras acumuladas conforman una palabra completa, escribirlas en el tablero de palabras y borrar las letras temporales
-
-
-						// lo tenemos que hacer antes del for porque si no un jugador puede leer el tablero
-						// antes de que esto haya terminado y le va a aparecer media palabra *_*
-						lock_t_palabras.wlock();
+            // las letras acumuladas conforman una palabra completa, 
+            // escribirlas en el tablero de palabras y borrar las letras
+            // temporales lo tenemos que hacer antes del for porque si no 
+            // un jugador puede leer el tablero antes de que esto haya terminado 
+            // y le va a aparecer media palabra *_*
+			lock_t_palabras.wlock();
             for (list<Casillero>::const_iterator casillero = palabra_actual.begin(); casillero != palabra_actual.end(); casillero++) {
                 tablero_palabras[casillero->fila][casillero->columna] = casillero->letra;
             }
-						lock_t_palabras.wunlock();
+			lock_t_palabras.wunlock();
 						
             palabra_actual.clear();
 
@@ -202,7 +201,7 @@ void *atendedor_de_jugador(void *args){
             terminar_servidor_de_jugador(socket_fd, palabra_actual);
         }
     }
-		return NULL;
+    return NULL;
 }
 
 
@@ -324,7 +323,7 @@ void terminar_servidor_de_jugador(int socket_fd, list<Casillero>& palabra_actual
 
     quitar_letras(palabra_actual);
 
-    exit(-1);
+    pthread_exit(NULL);
 }
 
 
