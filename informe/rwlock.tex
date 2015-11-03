@@ -1,0 +1,58 @@
+\par Nuestra implementación de RWLocks funciona de manera similar a la siguiente implementación propuesta en  el libro \textit{The Little Book of Semaphores} \footnote{\url{http://www.greenteapress.com/semaphores/downey05semaphores.pdf}}, que utiliza semáforos para solucionar el problema de lectores y escritores.
+
+\begin{lstlisting}[caption= No-starve readers-writers initialization, style=C]
+readSwitch = Lightswitch()
+roomEmpty = Semaphore(1)
+turnstile = Semaphore(1))
+\end{lstlisting}
+
+\begin{lstlisting}[caption= No-starve writer solution, style=C]
+turnstile.wait()
+	roomEmpty.wait()
+	# critical section for writers
+turnstile.signal()
+
+roomEmpty.signal()
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption= No-starve reader solution, style=C]
+turnstile.wait()
+turnstile.signal()
+
+readSwitch.lock(roomEmpty)
+	# critical section for readers
+readSwitch.unlock(roomEmpty)
+\end{lstlisting}
+
+\par Esta solución utiliza un semáforo denominado \texttt{turnstile} o \textbf{molinete}, que permite a los lectores avanzar a su zona crítica hasta que un escritor haga lock del molinete. En ese caso, fuerza a los lectores entrantes a trabarse en el molinete y espera a que los que ya habían pasado el molinete terminen de leer, utilizando el semáforo \texttt{roomEmpty} para saber cuando no haya más lectores leyendo. Entonces, cuando el último lector deje la zona crítica, el escritor podrá escribir. Esto garantiza que además no pueda haber más de un escritor escribiendo, ya que también quedarán trabados en el molinete mientras haya alguien escribiendo. Este método evita inanición de escritores y lectores, ya que por ejemplo, en otra implementación podría suceder que un escritor espere indefinidamente mientras sigan llegando lectores o viceversa.
+\par Para adaptar esta implementación usando variables de condición, utilizamos una variable de condición a la que llamamos \texttt{molinete}, asociada a un mutex \texttt{m}. Para reemplazar el mutex turnstile de la implementación anterior, utilizamos una variable booleana \texttt{mol} que indica si el molinete está liberado o no, y para reemplazar el semáforo roomEmpty utilizamos un entero \texttt{lectores} que lleva la cuenta de la cantidad de lectores que se encuentran leyendo.
+
+\begin{itemize}
+\item {El \emph{rlock} consiste en hacer un lock del mutex para asegurar exclusividad de las variables y esperar a que el molinete se encuentre liberado (\texttt{mol} == True). Si está liberado se aumenta la cantidad de lectores en uno y se procede a hacer unlock del mutex para leer.}
+\item{El \emph{runlock} consiste en hacer lock del mutex, disminuir la cantidad de lectores en uno y realizar un broadcast antes de hacer unlock del mutex, para despertar a los threads bloqueados en el molinete (es necesario realizar broadcast ya que los signal no son acumulables, a diferencia de los semáforos, y puede haber más de un lector esperando leer).}
+\item{El \emph{wlock} consiste en hacer lock del mutex, esperar que el molinete se encuentre liberado, y una vez pasado el molinete bloquearlo (seteando \texttt{mol} = False) para evitar que pasen nuevos lectores o más de un escritor al mismo tiempo. Antes de escribir, espera que terminen de leer los lectores que se encontraban leyendo antes de trabar el molinete (es decir, \texttt{lectores} == 0), y luego hace unlock del mutex para escribir su sección crítica.}
+\item{El \emph{wunlock} consiste en hacer lock del mutex, liberar el molinete seteando \texttt{mol} en True, y realizar el broadcast correspondiente antes de hacer unlock del mutex, para despertar a los demás threads.}
+\end{itemize}
+
+
+\subsection{Tests}
+
+\par Los tests implementados para corroborar el funcionamiento de los RWLocks consisten en la creación de una cierta cantidad de threads asociados a una función de lectura o escritura de una variable global. Cada thread luego imprime en pantalla, en caso de que esté escribiendo, el nuevo valor asignado a la variable global, o en caso de que esté leyendo, el valor leído. Para poder identificarlos, los threads escritores escriben en la variable su número de tid asociado que va de 0 a CANT\_THREADS-1. 
+
+\par El programa \texttt{rwlocktest} toma por parámetro un entero para diferenciar tres tipos de test:
+
+\begin{itemize}
+
+\item {\texttt{./rwlocktest 0} ejecuta un test con CANT\_THREADS-1 lectores y 1 escritor, donde el orden en que se crea el thread escritor está dado pseudoaleatoriamente utilizando las funciones de C \texttt{rand()} y \texttt{srand()}.}
+
+\item {\texttt{./rwlocktest 1} ejecuta un test con CANT\_THREADS-1 escritores y 1 lector, donde el orden en que se crea el thread lector está dado pseudoaleatoriamente utilizando las funciones de C \texttt{rand()} y \texttt{srand()}.}
+
+\item {\texttt{./rwlocktest 2} ejecuta un test con una cantidad aleatoria de escritores y lectores, utilizando \texttt{rand()} y \texttt{srand()} para determinar si el thread creado será lector o escritor.}
+
+\end{itemize}
+
+\par Los tests 0 y 1 fueron implementados para corroborar que no se produzca inanición de escritores y/o lectores respectivamente. 
+\par El valor de CANT\_THREADS se encuentra definido por default en 40, pero puede modificarse fácilmente en RWLock.cpp.
+
+
