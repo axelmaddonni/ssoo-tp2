@@ -3,7 +3,7 @@
 \begin{lstlisting}[caption= No-starve readers-writers initialization, style=C]
 readSwitch = Lightswitch()
 roomEmpty = Semaphore(1)
-turnstile = Semaphore(1))
+turnstile = Semaphore(1)
 \end{lstlisting}
 
 \begin{lstlisting}[caption= No-starve writer solution, style=C]
@@ -53,6 +53,6 @@ readSwitch.unlock(roomEmpty)
 \end{itemize}
 
 \par Los tests 0 y 1 fueron implementados para corroborar que no se produzca inanición de escritores y/o lectores respectivamente. 
-\par El valor de CANT\_THREADS se encuentra definido por default en 40, pero puede modificarse fácilmente en RWLock.cpp.
+\par El valor de CANT\_THREADS se encuentra definido por default en 40, pero puede modificarse fácilmente en RWLockTest.cpp.
 
 

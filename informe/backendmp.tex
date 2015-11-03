@@ -3,9 +3,9 @@ Para realizar la implementación del backend multithreaded se utilizó como base
 
 El primer problema que aparece es al atender las conexiones. Para eso, se debió delimitar un máximo de jugadores que pueden estar jugando al juego en simultaneo. Para eso, vamos a escuchar como máximo esa cantidad de conexiones.
 
-Para el tablero de letras usamos un rwlock para cada casillero, permitiendo asi que dos usuarios escriban simultaneamente 2 casilleros distintos. Por eso, debimos utilizar una matriz de rwlock's, en la que cada posición de la matriz se corresponde con la misma posición del tablero de letras.
+Para el tablero de letras usamos un rwlock para cada casillero, permitiendo así que dos usuarios escriban simultáneamente 2 casilleros distintos. Por eso, debimos utilizar una matriz de rwlocks, en la que cada posición de la matriz se corresponde con la misma posición del tablero de letras.
 
-Sin embargo, para el tablero de palabras la situacion es distinta, y tomamos la decisión de tener un único lock para todo el tablero, dado que si tenemos un lock por casillero, pueden pasar cosas como que un jugador haga update mientras otro esta escribiendo una palabra y que al que hizo update le llegue solo media palabra.
+Sin embargo, para el tablero de palabras la situación es distinta, y tomamos la decisión de tener un único lock para todo el tablero, dado que si tenemos un lock por casillero, pueden pasar cosas como que un jugador haga update mientras otro esta escribiendo una palabra y que al que hizo update le llegue solo media palabra.
 
 Haciendo lock del tablero entero nos aseguramos que cuando un jugador escribe una palabra, estamos seguros de que lo va a terminar de hacer antes de que otro jugador lea los contenidos del tablero de palabras. Debido a esto, además debimos tener en cuenta que el lock se debe hacer durante toda la escritura de una palabra, es decir, que la escritura de una palabra entera debe verse como \emph{atómica} desde afuera.
 

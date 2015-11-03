@@ -6,11 +6,15 @@
 
 using std::cout;
 
-#define CANT_THREADS 40
+#define CANT_THREADS 100
 
 int variable_disputada;
 
 RWLock rwlck;
+
+/* para correr muchas veces: 
+ *     n=0; while [[ $n -lt 100 ]]; do ./rwlocktest PARAM; n=$((n+1)); done
+ */
 
 void *escribir(void *p_minumero){
     int minumero = *((int *) p_minumero);
@@ -49,69 +53,62 @@ int main(int argc, char* argv[]) {
     int test = atoi(argv[1]);
 
     if (test == 0){
+		// Test con muchos lectores y un escritor
+		pthread_t thread[CANT_THREADS];
+		int tid[CANT_THREADS];
 
-        // Test con muchos lectores y un escritor
+		for (int i = 0; i < CANT_THREADS; i++)
+			tid[i] = i;
 
-    pthread_t thread[CANT_THREADS];
-    int tid[CANT_THREADS];
+		int random = rand() % CANT_THREADS; // entre 0 y CANT_THREADS
 
-    for (int i = 0; i < CANT_THREADS; i++)
-        tid[i] = i;
-
-
-    int random = rand() % CANT_THREADS; // entre 0 y CANT_THREADS
-    
-    for (int i = 0; i < CANT_THREADS; i++){
-        if(i != random) pthread_create(&thread[i], NULL, leer , &tid[i]);
-        else pthread_create(&thread[i], NULL, escribir, &tid[i]);
-    }
+		for (int i = 0; i < CANT_THREADS; i++){
+			if(i != random) pthread_create(&thread[i], NULL, leer , &tid[i]);
+			else pthread_create(&thread[i], NULL, escribir, &tid[i]);
+		}
 
 
-    for (int i = 0; i < CANT_THREADS; i++)
-        pthread_join(thread[i], NULL);
+		for (int i = 0; i < CANT_THREADS; i++)
+			pthread_join(thread[i], NULL);
 
 
     }else if (test == 1){
+		// Test con muchos escritores y un lector
 
-    // Test con muchos escritores y un lector
+		pthread_t thread[CANT_THREADS];
+		int tid[CANT_THREADS];
 
-    pthread_t thread[CANT_THREADS];
-    int tid[CANT_THREADS];
+		for (int i = 0; i < CANT_THREADS; i++)
+			tid[i] = i;
 
-    for (int i = 0; i < CANT_THREADS; i++)
-        tid[i] = i;
+		int random = rand() % CANT_THREADS ; // entre 0 y CANT_THREADS
 
-    int random = rand() % CANT_THREADS ; // entre 0 y CANT_THREADS
+		for (int i = 0; i < CANT_THREADS; i++){
+			if(i == random) pthread_create(&thread[i], NULL, leer , &tid[i]);
+			else pthread_create(&thread[i], NULL, escribir, &tid[i]);
+		}
 
-    for (int i = 0; i < CANT_THREADS; i++){
-        if(i == random) pthread_create(&thread[i], NULL, leer , &tid[i]);
-        else pthread_create(&thread[i], NULL, escribir, &tid[i]);
-    }
+		for (int i = 0; i < CANT_THREADS; i++)
+			pthread_join(thread[i], NULL);
 
+    } else if (test == 2){
+		// Test con lectores y escritores alternados pseudoaleatoriamente
 
-    for (int i = 0; i < CANT_THREADS; i++)
-        pthread_join(thread[i], NULL);
+		pthread_t thread[CANT_THREADS];
+		int tid[CANT_THREADS];
 
-    }else if (test == 2){
+		for (int i = 0; i < CANT_THREADS; i++)
+			tid[i] = i;
 
-    // Test con lectores y escritores alternados pseudoaleatoriamente
-
-    pthread_t thread[CANT_THREADS];
-    int tid[CANT_THREADS];
-
-    for (int i = 0; i < CANT_THREADS; i++)
-        tid[i] = i;
-
-    for (int i = 0; i < CANT_THREADS; i++){
-        int random = rand() % 2 ; //moneda 0 o 1
-        if(random % 2 == 0) pthread_create(&thread[i], NULL, leer , &tid[i]);
-        else pthread_create(&thread[i], NULL, escribir, &tid[i]);
-    }
+		for (int i = 0; i < CANT_THREADS; i++){
+			int random = rand() % 2 ; //moneda 0 o 1
+			if(random % 2 == 0) pthread_create(&thread[i], NULL, leer , &tid[i]);
+			else pthread_create(&thread[i], NULL, escribir, &tid[i]);
+		}
 
 
-    for (int i = 0; i < CANT_THREADS; i++)
-        pthread_join(thread[i], NULL);
-
+		for (int i = 0; i < CANT_THREADS; i++)
+			pthread_join(thread[i], NULL);
     }else{
         cout << "Modo de uso: ./rwlocktest numeroDeTest" << std::endl;
         cout << "numeroDeTest 0 para test con muchos lectores y un escritor " << std::endl;
