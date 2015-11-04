@@ -35,6 +35,8 @@ readSwitch.unlock(roomEmpty)
 \item{El \emph{wunlock} consiste en hacer lock del mutex, liberar el molinete seteando \texttt{mol} en True, y realizar el broadcast correspondiente antes de hacer unlock del mutex, para despertar a los demás threads.}
 \end{itemize}
 
+\par La implementación no sufre de inanición ni deadlock, como explicamos antes, dado que existen los molinetes. Los molinetes permiten que los escritores y lectores se vayan turnando, además de permitir, en el caso de los lectores, que varios entren a la zona crítica al mismo tiempo. El concepto de los turnos es el más importante para este problema, dado que pensarlo de esta manera clarifica en gran medida la solución.
+
 
 \subsection{Tests}
 

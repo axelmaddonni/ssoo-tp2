@@ -52,7 +52,7 @@ int main(int argc, const char* argv[]) {
     }
 
     // inicializar ambos tableros, se accede como tablero[fila][columna]
-		// tambien inicializo la matriz de locks del tablero de letras
+    // tambien inicializo la matriz de locks del tablero de letras
     tablero_letras = vector<vector<char> >(alto);
     locks_t_letras = vector<vector<RWLock> >(alto);
     for (unsigned int i = 0; i < alto; ++i) {
@@ -150,7 +150,7 @@ void *atendedor_de_jugador(void *args){
                 // necesito hacer wlock *_*
                 locks_t_letras[ficha.fila][ficha.columna].wlock();
                 tablero_letras[ficha.fila][ficha.columna] = ficha.letra;
-				locks_t_letras[ficha.fila][ficha.columna].wunlock();
+                locks_t_letras[ficha.fila][ficha.columna].wunlock();
 
                 // OK
                 if (enviar_ok(socket_fd) != 0) {
@@ -173,12 +173,11 @@ void *atendedor_de_jugador(void *args){
             // temporales lo tenemos que hacer antes del for porque si no 
             // un jugador puede leer el tablero antes de que esto haya terminado 
             // y le va a aparecer media palabra *_*
-			lock_t_palabras.wlock();
+            lock_t_palabras.wlock();
             for (list<Casillero>::const_iterator casillero = palabra_actual.begin(); casillero != palabra_actual.end(); casillero++) {
                 tablero_palabras[casillero->fila][casillero->columna] = casillero->letra;
             }
-			lock_t_palabras.wunlock();
-						
+            lock_t_palabras.wunlock();
             palabra_actual.clear();
 
             if (enviar_ok(socket_fd) != 0) {
@@ -278,9 +277,8 @@ int enviar_tablero(int socket_fd) {
     char buf[MENSAJE_MAXIMO+1];
     sprintf(buf, "STATUS ");
     int pos = 7;
-		// lo ponemos afuera por mismo de antes, que no queden palabras incompletas *_*
-
-		lock_t_palabras.rlock();
+    // lo ponemos afuera por mismo de antes, que no queden palabras incompletas *_*
+    lock_t_palabras.rlock();
     for (unsigned int fila = 0; fila < alto; ++fila) {
         for (unsigned int col = 0; col < ancho; ++col) {
             char letra = tablero_palabras[fila][col];
@@ -288,7 +286,7 @@ int enviar_tablero(int socket_fd) {
             pos++;
         }
     }
-		lock_t_palabras.runlock();
+    lock_t_palabras.runlock();
     buf[pos] = 0; //end of buffer
 
     return enviar(socket_fd, buf);
@@ -329,10 +327,10 @@ void terminar_servidor_de_jugador(int socket_fd, list<Casillero>& palabra_actual
 
 void quitar_letras(list<Casillero>& palabra_actual) {
     for (list<Casillero>::const_iterator casillero = palabra_actual.begin(); casillero != palabra_actual.end(); casillero++) {
-			  // necesitamos acceso exclusivo *_*
-				locks_t_letras[casillero->fila][casillero->columna].wlock();
+        // necesitamos acceso exclusivo *_*
+        locks_t_letras[casillero->fila][casillero->columna].wlock();
         tablero_letras[casillero->fila][casillero->columna] = VACIO;
-				locks_t_letras[casillero->fila][casillero->columna].wunlock();
+        locks_t_letras[casillero->fila][casillero->columna].wunlock();
     }
     palabra_actual.clear();
 }
@@ -345,13 +343,13 @@ bool es_ficha_valida_en_palabra(const Casillero& ficha, const list<Casillero>& p
     }
 
     // si el casillero está ocupado, tampoco es válida
-		// necesitamos acceso exclusivo *_*
-		locks_t_letras[ficha.fila][ficha.columna].rlock();
+    // necesitamos acceso exclusivo *_*
+    locks_t_letras[ficha.fila][ficha.columna].rlock();
     if (tablero_letras[ficha.fila][ficha.columna] != VACIO) {
-			  locks_t_letras[ficha.fila][ficha.columna].runlock();
+        locks_t_letras[ficha.fila][ficha.columna].runlock();
         return false;
     }
-		locks_t_letras[ficha.fila][ficha.columna].runlock();
+    locks_t_letras[ficha.fila][ficha.columna].runlock();
 
     if (palabra_actual.size() > 0) {
         // no es la primera letra de la palabra, ya hay fichas colocadas para esta palabra
@@ -369,17 +367,17 @@ bool es_ficha_valida_en_palabra(const Casillero& ficha, const list<Casillero>& p
             }
 
             int paso = distancia_horizontal / abs(distancia_horizontal);
-
-						// *_* DUDOSO
-						lock_t_palabras.rlock();
+            
+            // *_* 
+            lock_t_palabras.rlock();
             for (unsigned int columna = mas_distante.columna; columna != ficha.columna; columna += paso) {
                 // el casillero DEBE estar ocupado en el tablero de palabras	
                 if (!(puso_letra_en(ficha.fila, columna, palabra_actual)) && tablero_palabras[ficha.fila][columna] == VACIO) {
-									  lock_t_palabras.runlock();
+                    lock_t_palabras.runlock();
                     return false;
                 }
             }
-						lock_t_palabras.runlock();
+            lock_t_palabras.runlock();
 
         } else if (distancia_horizontal == 0) {
             // la palabra es vertical
@@ -391,16 +389,16 @@ bool es_ficha_valida_en_palabra(const Casillero& ficha, const list<Casillero>& p
             }
 
             int paso = distancia_vertical / abs(distancia_vertical);
-						// *_* DUDOSO
-						lock_t_palabras.rlock();
+            // *_* 
+            lock_t_palabras.rlock();
             for (unsigned int fila = mas_distante.fila; fila != ficha.fila; fila += paso) {
                 // el casillero DEBE estar ocupado en el tablero de palabras
                 if (!(puso_letra_en(fila, ficha.columna, palabra_actual)) && tablero_palabras[fila][ficha.columna] == VACIO) {
-									  lock_t_palabras.runlock();
+                    lock_t_palabras.runlock();
                     return false;
                 }
             }
-						lock_t_palabras.runlock();
+            lock_t_palabras.runlock();
         }
         else {
             // no están alineadas ni horizontal ni verticalmente
